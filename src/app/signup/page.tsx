@@ -1,8 +1,9 @@
 "use client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { axios } from "axios";
+import axios from "axios";
 import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -18,8 +19,14 @@ export default function SignupPage() {
     console.log(user);
 
     try {
-    } catch (err) {
-      console.log(err);
+      setloading(true);
+      const respose = await axios.post("/api/users/signup", user);
+      console.log("Signup Success", respose.data);
+      router.push("/login");
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setloading(false);
     }
   };
 
@@ -37,7 +44,7 @@ export default function SignupPage() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen py-2 ">
-      <h1 className="mg-33"> SignUp</h1>
+      <h1 className="mg-33"> {loading ? "Processing" : "Signup"}</h1>
       <hr />
       <label htmlFor="username">UserName</label>
       <input
@@ -54,7 +61,7 @@ export default function SignupPage() {
       <input
         className="p-3 border border-grey-300 rounded-lg mb-4 focus:outline-none focus:border-grey-600 text-black"
         id="email"
-        type="text"
+        type="email"
         value={user.email}
         onChange={(e) => {
           setUser({ ...user, email: e.target.value });
@@ -64,8 +71,8 @@ export default function SignupPage() {
       <label htmlFor="username">Password</label>
       <input
         className="p-3 border border-grey-300 rounded-lg mb-4 focus:outline-none focus:border-grey-600 text-black"
-        id="email"
-        type="text"
+        id="password"
+        type="password"
         value={user.password}
         onChange={(e) => {
           setUser({ ...user, password: e.target.value });
