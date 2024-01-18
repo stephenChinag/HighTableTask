@@ -21,6 +21,25 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    // hash password
+    const salt = await bcryptjs.genSalt(10);
+    const hashedPwd = await bcryptjs.hash(password, salt);
+
+    const newUser = new User({
+      username,
+      email,
+      password: hashedPwd,
+    });
+    const savedUser = await newUser.save();
+    console.log(savedUser);
+
+    return NextResponse.json(
+      {
+        message: "User Created Succesfull",
+      },
+      { status: 201 }
+    );
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

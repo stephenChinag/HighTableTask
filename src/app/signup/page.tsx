@@ -2,18 +2,38 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { axios } from "axios";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function SignupPage() {
+  const router = useRouter();
+  const [loading, setloading] = useState(false);
   const [user, setUser] = useState({
     email: "",
     password: "",
     username: "",
   });
+  const [buttonDisabled, setButtondisabled] = useState(false);
 
   const onSingUp = async () => {
     console.log(user);
+
+    try {
+    } catch (err) {
+      console.log(err);
+    }
   };
+
+  useEffect(() => {
+    if (
+      user.email.length > 0 &&
+      user.password.length > 0 &&
+      user.username.length > 0
+    ) {
+      setButtondisabled(false);
+    } else {
+      setButtondisabled(true);
+    }
+  }, [user]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen py-2 ">
@@ -21,7 +41,7 @@ export default function SignupPage() {
       <hr />
       <label htmlFor="username">UserName</label>
       <input
-        className="p-3 border border-grey-300 rounded-lg mb-4 focus:outline-none focus:border-grey-600"
+        className="p-3 border border-grey-300 rounded-lg mb-4 focus:outline-none focus:border-grey-600 text-black"
         id="username"
         type="text"
         value={user.username}
@@ -32,7 +52,7 @@ export default function SignupPage() {
       />
       <label htmlFor="username">Email</label>
       <input
-        className="p-3 border border-grey-300 rounded-lg mb-4 focus:outline-none focus:border-grey-600"
+        className="p-3 border border-grey-300 rounded-lg mb-4 focus:outline-none focus:border-grey-600 text-black"
         id="email"
         type="text"
         value={user.email}
@@ -43,7 +63,7 @@ export default function SignupPage() {
       />
       <label htmlFor="username">Password</label>
       <input
-        className="p-3 border border-grey-300 rounded-lg mb-4 focus:outline-none focus:border-grey-600"
+        className="p-3 border border-grey-300 rounded-lg mb-4 focus:outline-none focus:border-grey-600 text-black"
         id="email"
         type="text"
         value={user.password}
@@ -57,7 +77,7 @@ export default function SignupPage() {
         className="p-2 border border-gray-300 rounded-lg mb-4 focus:outline-none focus:border-gray-600"
       >
         {" "}
-        Signup Here
+        {buttonDisabled ? "No Signup" : "Signup"}
       </button>
       <Link href="/login"> Vist Login</Link>
     </div>
