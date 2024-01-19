@@ -6,10 +6,10 @@ import { useState } from "react";
 import axios from "axios";
 import { loadingCityAtom, placeAtom } from "@/app/atom";
 import { useAtom } from "jotai";
-type Props = {};
+type Props = { location?: string };
 const API_KEY = process.env.NEXT_PUBLIC_WEATHER_KEY;
 
-export default function Navbar({}: Props) {
+export default function Navbar({ location }: Props) {
   const [city, setCity] = useState("");
   const [error, setError] = useState("");
   //
@@ -78,7 +78,7 @@ export default function Navbar({}: Props) {
             className="text-2xl  text-gray-400 hover:opacity-80 cursor-pointer"
           />
           <MdOutlineLocationOn className="text-3xl" />
-          <p className="text-slate-900/80 text-sm"> Nigeria </p>
+          <p className="text-slate-900/80 text-sm"> {location} </p>
           <div>
             {" "}
             <SearchBox
