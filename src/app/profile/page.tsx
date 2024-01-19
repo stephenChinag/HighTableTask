@@ -6,11 +6,14 @@ import { useRouter } from "next/navigation";
 import { Key, useState } from "react";
 import Navbar from "@/components/Navbar";
 import { useQuery } from "react-query";
-import { format, parseISO } from "date-fns";
+import { format, parseISO, fromUnixTime } from "date-fns";
 import Container from "@/components/Container";
 import { convertKelvinToCelsius } from "@/utils/convertKelvinToCelsius";
 import WeatherIcon from "@/components/WeatherIcon";
 import { getDayOrNightIcon } from "@/utils/getDayOrNightIcon";
+import { convertWindSpeed } from "@/utils/convertWindSpeed";
+import WeatherDetails from "@/components/WeatherDetails";
+import { metersToKilometers } from "@/utils/metersToKilometers";
 //https://api.openweathermap.org/data/2.5/forecast?q=nigeria&appid=a693fb80205a2a0c4661350f7d698afe&cnt=56
 
 type WeatherData = {
@@ -109,6 +112,15 @@ export default function ProfilePage() {
     }
   };
 
+  // Filtering data to get the first entry after 6 AM for each unique date
+  // const firstDataForEachDate = uniqueDates.map((date) => {
+  //   return data?.list.find((entry) => {
+  //     const entryDate = new Date(entry.dt * 1000).toISOString().split("T")[0];
+  //     const entryTime = new Date(entry.dt * 1000).getHours();
+  //     return entryDate === date && entryTime >= 6;
+  //   });
+  // });
+
   return (
     <div className="flex flex-col gap-4 bg-gray-100 min-h-screen ">
       <Navbar />
@@ -163,6 +175,37 @@ export default function ProfilePage() {
                 ))}
               </div>
             </Container>
+          </div>
+          <div className=" flex gap-4">
+            {/* left  */}
+            <Container className="w-fit  justify-center flex-col px-4 items-center ">
+              <p className=" capitalize text-center">
+                {firstData?.weather[0].description}{" "}
+              </p>
+              <WeatherIcon
+                iconName={getDayOrNightIcon(
+                  firstData?.weather[0].icon ?? "",
+                  firstData?.dt_txt ?? ""
+                )}
+              />
+            </Container>
+            <Container className="bg-yellow-300/80  px-6 gap-4 justify-between overflow-x-auto">
+              <WeatherDetails
+                visability={metersToKilometers(firstData?.visibility ?? 10000)}
+                airPressure={`${firstData?.main.pressure} hPa`}
+                humidity={`${firstData?.main.humidity}%`}
+                sunrise={format(
+                  fromUnixTime(data?.city.sunrise ?? 1702949452),
+                  "H:mm"
+                )}
+                sunset={format(
+                  fromUnixTime(data?.city.sunset ?? 1702517657),
+                  "H:mm"
+                )}
+                windSpeed={convertWindSpeed(firstData?.wind.speed ?? 1.64)}
+              />
+            </Container>
+            {/* right  */}
           </div>
         </section>
 
