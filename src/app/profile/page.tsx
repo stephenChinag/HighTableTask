@@ -1,9 +1,10 @@
 "use client";
 import axios from "axios";
 import Link from "next/link";
+import ForecastWeatherDetail from "@/components/ForecastWeatherDetail";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
-import { Key, useState } from "react";
+import { Key, useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
 import { useQuery } from "react-query";
 import { format, parseISO, fromUnixTime } from "date-fns";
@@ -14,6 +15,8 @@ import { getDayOrNightIcon } from "@/utils/getDayOrNightIcon";
 import { convertWindSpeed } from "@/utils/convertWindSpeed";
 import WeatherDetails from "@/components/WeatherDetails";
 import { metersToKilometers } from "@/utils/metersToKilometers";
+import { loadingCityAtom, placeAtom } from "@/app/atom";
+import { useAtom } from "jotai";
 //https://api.openweathermap.org/data/2.5/forecast?q=nigeria&appid=a693fb80205a2a0c4661350f7d698afe&cnt=56
 
 type WeatherData = {
@@ -72,12 +75,13 @@ type WeatherItem = {
 };
 
 export default function ProfilePage() {
+  const [place, setPlace] = useAtom(placeAtom);
   const router = useRouter();
-  const { isLoading, error, data } = useQuery(
+  const { isLoading, error, data, refetch } = useQuery(
     "repoData",
     async () => {
       const { data } = await axios.get(
-        `https://api.openweathermap.org/data/2.5/forecast?q=nigeria&appid=${process.env.NEXT_PUBLIC_WEATHER_KEY}&cnt=56`
+        `https://api.openweathermap.org/data/2.5/forecast?q=${place}&appid=${process.env.NEXT_PUBLIC_WEATHER_KEY}&cnt=56`
       );
       return data;
     }
@@ -85,6 +89,10 @@ export default function ProfilePage() {
     //   "https://api.openweathermap.org/data/2.5/forecast?q=nigeria&appid=a693fb80205a2a0c4661350f7d698afe&cnt=56"
     // ).then((res) => res.json())
   );
+
+  useEffect(() => {
+    refetch();
+  }, [place, refetch]);
   const firstData = data?.list[0];
 
   console.log("data", data?.list);
@@ -99,7 +107,15 @@ export default function ProfilePage() {
   //     <div className="flex items-center min-h-screen justify-center">
   //       <p className="text-red-400">{error}</p>
   //     </div>
-  //   );
+  //   )
+
+  const uniqueDates = [
+    ...new Set(
+      data?.list.map(
+        (entry: any) => new Date(entry.dt * 1000).toISOString().split("T")[0]
+      )
+    ),
+  ];
 
   const onLogOuttHandler = async () => {
     try {
@@ -113,13 +129,13 @@ export default function ProfilePage() {
   };
 
   // Filtering data to get the first entry after 6 AM for each unique date
-  // const firstDataForEachDate = uniqueDates.map((date) => {
-  //   return data?.list.find((entry) => {
-  //     const entryDate = new Date(entry.dt * 1000).toISOString().split("T")[0];
-  //     const entryTime = new Date(entry.dt * 1000).getHours();
-  //     return entryDate === date && entryTime >= 6;
-  //   });
-  // });
+  const firstDataForEachDate = uniqueDates.map((date) => {
+    return data?.list.find((entry: any) => {
+      const entryDate = new Date(entry.dt * 1000).toISOString().split("T")[0];
+      const entryTime = new Date(entry.dt * 1000).getHours();
+      return entryDate === date && entryTime >= 6;
+    });
+  });
 
   return (
     <div className="flex flex-col gap-4 bg-gray-100 min-h-screen ">
@@ -209,9 +225,34 @@ export default function ProfilePage() {
           </div>
         </section>
 
-        {/* 7 Days Forcast */}
+        {/* 7 Day Forcast */}
         <section className="flex w-full flex-col gap-4  ">
           <p className="text-2xl">Forcast (7 days)</p>
+          {firstDataForEachDate.map((d, i) => (
+            <ForecastWeatherDetail
+              key={i}
+              description={d?.weather[0].description ?? ""}
+              weatehrIcon={d?.weather[0].icon ?? "01d"}
+              date={format(parseISO(d?.dt_txt ?? ""), "dd.MM")}
+              day={format(parseISO(d?.dt_txt ?? ""), "EEEE")}
+              feels_like={d?.main.feels_like ?? 0}
+              temp={d?.main.temp ?? 0}
+              temp_max={d?.main.temp_max ?? 0}
+              temp_min={d?.main.temp_min ?? 0}
+              airPressure={`${d?.main.pressure} hPa `}
+              humidity={`${d?.main.humidity}% `}
+              sunrise={format(
+                fromUnixTime(data?.city.sunrise ?? 1702517657),
+                "H:mm"
+              )}
+              sunset={format(
+                fromUnixTime(data?.city.sunset ?? 1702517657),
+                "H:mm"
+              )}
+              visability={`${metersToKilometers(d?.visibility ?? 10000)} `}
+              windSpeed={`${convertWindSpeed(d?.wind.speed ?? 1.64)} `}
+            />
+          ))}
         </section>
       </main>
 
